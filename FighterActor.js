@@ -10,9 +10,9 @@ class FighterActor extends Actor{
     this.y = typeof y === "undefined" ? Math.random() * world.height : y;
     this.heading = Math.random() * 2 * Math.PI;
     this.maxHealth = this.health = 16;
+
     this.timeLastAttack = 0;
     this.attackTicksCooldown = 30;
-
     this.speed = 1.3;
     this.damage = 7;
 

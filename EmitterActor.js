@@ -36,6 +36,11 @@ class FighterEmitterActor extends Actor{
     this.enemyClasses = enemyClasses;
     this.maxHealth = this.health = 100;
 
+    this.timeLastAttack = 0;
+    this.attackTicksCooldown = 30;
+    this.pulseSpellRange = 64;
+    this.pulseSpellDamage = 6;
+
     this.elem = $(`<div class='actor emitter-actor ${classes.join(' ')}'></div>`);
     this.setPosition();
     world.main.append(this.elem);
@@ -47,6 +52,37 @@ class FighterEmitterActor extends Actor{
       world.actors.push(new FighterActor(world, this.x, this.y, this.classes, this.enemyClasses));
     }
 
+    if(this.canPulse()){
+      this.pulseDefense();
+    }
+
     this.ticksAlive++;
+  }
+
+  canPulse(){
+    return this.ticksAlive - this.timeLastAttack >= this.attackTicksCooldown;
+  }
+  pulseDefense() {
+    var castIt = false;
+
+    for(var i=0; i < this.world.actors.length; ++i){
+      var enemy = this.world.actors[i];
+      if(enemy == this) continue; // Can't target self
+      if(!enemy.hasClass(this.enemyClasses)) continue; // Skip anything that's not an enemy
+
+      var actorDist = this.distanceToActor(enemy);
+      if(actorDist < this.pulseSpellRange) {
+        enemy.applyDamage(this.pulseSpellDamage);
+        castIt = true;
+      }
+    }
+
+    if(castIt){
+      this.elem.addClass("pulsing");
+      this.timeLastAttack = this.ticksAlive;
+      setTimeout(() => {
+        this.elem.removeClass("pulsing");
+      }, 100);
+    }
   }
 }

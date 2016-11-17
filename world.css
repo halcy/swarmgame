@@ -53,3 +53,11 @@
 .hp-20:after  { background: linear-gradient(to right, #167019 80%,#c10000 80%); }
 .hp-10:after  { background: linear-gradient(to right, #167019 90%,#c10000 90%); }
 .hp-0:after   { background: linear-gradient(to right, #167019 100%,#c10000 100%); }
+
+
+/* Special spells */
+.emitter-actor.pulsing {
+  width: 64px;
+  height: 64px;
+  background: gold !important;
+}
