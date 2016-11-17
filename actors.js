@@ -81,8 +81,8 @@ class WanderActor extends Actor{
   tick(world) {
 
     this.heading += (Math.PI / 8) * (Math.random() * 2 - 1);
-    this.x += 5 * Math.cos(this.heading);
-    this.y += 5 * Math.sin(this.heading);
+    this.x += 1 * Math.cos(this.heading);
+    this.y += 1 * Math.sin(this.heading);
     this.setPosition();
 
     this.ticksAlive++;

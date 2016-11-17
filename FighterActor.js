@@ -12,6 +12,7 @@ class FighterActor extends Actor{
     this.maxHealth = this.health = 16;
     this.timeLastAttack = 0;
     this.attackTicksCooldown = 5;
+    this.speed = 1.3;
 
     this.classes = classes;
     this.enemyClasses = enemyClasses;
@@ -27,48 +28,66 @@ class FighterActor extends Actor{
 
   getTarget () {
     var minEnemy = null;
-    var minDist = null;
+    var minEDist = null;
+    var minActor = null;
+    var minADist = null;
 
     for(var i=0; i < this.world.actors.length; ++i){
       var enemy = this.world.actors[i];
-
       if(enemy == this) continue; // Can't target self
+
+      var actorDist = this.distanceToActor(enemy);
+      if(minADist === null || actorDist < minADist) {
+        minADist = actorDist;
+        minActor = enemy;
+      }
+
       if(!enemy.hasClass(this.enemyClasses)) continue; // Skip anything that's not an enemy
 
       var enDist = this.distanceToActor(enemy);
-
-      // Fighters are 16px right now, kill both if distance is close enough.
-      if(enDist < 16 && this.canAttack()){
-        enemy.applyDamage(2);
-        this.timeLastAttack = this.ticksAlive;
-      }
-
-      if(minDist === null || enDist < minDist) {
-        minDist = enDist;
+      if(minEDist === null || enDist < minEDist) {
+        minEDist = enDist;
         minEnemy = enemy;
       }
     }
 
-    return minEnemy;
+    return { enemy: minEnemy, nearestActor: minActor };
   }
 
   tick(world) {
 
-    var target = this.getTarget();
+    const TOUCHING_DIST = 16;
 
-    if(target){
-      var enDist = this.distanceToActor(target);
-      if(enDist <= 16 || this.health / this.maxHealth < 0.25){ // Run away if too low health!!!
-        // Don't overlap, back away if too close.
-        this.heading = Math.atan2(this.y - target.y, this.x - target.x);
+    var { enemy, nearestActor } = this.getTarget();
+
+    if(enemy){
+      var enDist = this.distanceToActor(enemy);
+      if(enDist <= TOUCHING_DIST || this.health / this.maxHealth < 0.25){ // Run away if too low health!!!
+        // Don't overlap, back away if too close!!
+        this.heading = Math.atan2(this.y - enemy.y, this.x - enemy.x);
+
+        // Fighters are TOUCHING_DIST right now, kill both if distance is close enough.
+        if(enDist <= TOUCHING_DIST && this.canAttack()){
+          enemy.applyDamage(2);
+          this.timeLastAttack = this.ticksAlive;
+        }
       }else{
-        this.heading = Math.atan2(target.y - this.y, target.x - this.x);
+        this.heading = Math.atan2(enemy.y - this.y, enemy.x - this.x);
       }
-    }//else{
-      this.heading += (Math.PI / 8) * (Math.random() * 2 - 1);
-    //}
-    this.x += 5 * Math.cos(this.heading);
-    this.y += 5 * Math.sin(this.heading);
+    }
+
+    if(nearestActor){
+      var actorDist = this.distanceToActor(nearestActor);
+      if(enDist <= TOUCHING_DIST){
+        // Don't overlap, back away if too close!!
+        this.heading = Math.atan2(this.y - nearestActor.y, this.x - nearestActor.x);
+      }
+    }
+
+    // Add randomness to path...
+    this.heading += (Math.PI / 8) * (Math.random() * 2 - 1);
+    this.x += this.speed * Math.cos(this.heading);
+    this.y += this.speed * Math.sin(this.heading);
     this.setPosition();
 
     this.ticksAlive++;

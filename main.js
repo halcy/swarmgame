@@ -17,8 +17,10 @@ function main() {
     .css("height", `${HEIGHT}px`);
 
 
-  World.actors.push(new FighterEmitterActor(World, ["good-guy"], ["bad-guy"]));
-  World.actors.push(new FighterEmitterActor(World, ["bad-guy"], ["good-guy"]));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy"], ["bad-guy"], 100, 100));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy"], ["bad-guy"], 100, 500));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy"], ["good-guy"], 700, 100));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy"], ["good-guy"], 700, 500));
 
   tick();
 }
@@ -35,5 +37,5 @@ function tick() {
   }
   World.actors = newActors;
 
-  setTimeout(tick, 1000 / 16);
+  setTimeout(tick, 1000 / 60);
 }
