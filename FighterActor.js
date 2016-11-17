@@ -11,8 +11,10 @@ class FighterActor extends Actor{
     this.heading = Math.random() * 2 * Math.PI;
     this.maxHealth = this.health = 16;
     this.timeLastAttack = 0;
-    this.attackTicksCooldown = 5;
+    this.attackTicksCooldown = 30;
+
     this.speed = 1.3;
+    this.damage = 7;
 
     this.classes = classes;
     this.enemyClasses = enemyClasses;
@@ -60,6 +62,8 @@ class FighterActor extends Actor{
 
     var { enemy, nearestActor } = this.getTarget();
 
+    this.elem.removeClass("attacking");
+
     if(enemy){
       var enDist = this.distanceToActor(enemy);
       if(enDist <= TOUCHING_DIST || this.health / this.maxHealth < 0.25){ // Run away if too low health!!!
@@ -67,9 +71,10 @@ class FighterActor extends Actor{
         this.heading = Math.atan2(this.y - enemy.y, this.x - enemy.x);
 
         // Fighters are TOUCHING_DIST right now, kill both if distance is close enough.
-        if(enDist <= TOUCHING_DIST && this.canAttack()){
-          enemy.applyDamage(2);
+        if(enDist <= TOUCHING_DIST + 4 && this.canAttack()){ // add 4 pixel buffer...
+          enemy.applyDamage(this.damage);
           this.timeLastAttack = this.ticksAlive;
+          this.elem.addClass("attacking");
         }
       }else{
         this.heading = Math.atan2(enemy.y - this.y, enemy.x - this.x);

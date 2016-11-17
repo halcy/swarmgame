@@ -9,6 +9,11 @@
   transform: translate(-50%, -50%);
 }
 
+.actor.attacking {
+  border: 1px solid black;
+  background: gold !important;
+}
+
 .wander-actor {
   width: 16px;
   height: 16px;
