@@ -17,8 +17,8 @@ function main() {
     .css("height", `${HEIGHT}px`);
 
 
-  World.actors.push(new FighterEmitterActor(World, "good-guy", "bad-guy"));
-  World.actors.push(new FighterEmitterActor(World, "bad-guy", "good-guy"));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy"], ["bad-guy"]));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy"], ["good-guy"]));
 
   tick();
 }
