@@ -1,5 +1,6 @@
 
-const HP_CLASSES = ["hp-0", "hp-10", "hp-20", "hp-30", "hp-40", "hp-50", "hp-60", "hp-70", "hp-80", "hp-90", "hp-100"];
+var HP_CLASSES = ["hp-0", "hp-10", "hp-20", "hp-30", "hp-40", "hp-50", "hp-60", "hp-70", "hp-80", "hp-90", "hp-100"];
+HP_CLASSES.reverse();
 
 class Actor {
   constructor(world) {

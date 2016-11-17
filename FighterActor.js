@@ -9,7 +9,7 @@ class FighterActor extends Actor{
     this.x = typeof x === "undefined" ? Math.random() * world.width : x;
     this.y = typeof y === "undefined" ? Math.random() * world.height : y;
     this.heading = Math.random() * 2 * Math.PI;
-    this.maxHealth = this.health = 4;
+    this.maxHealth = this.health = 16;
     this.timeLastAttack = 0;
     this.attackTicksCooldown = 5;
 
@@ -39,7 +39,7 @@ class FighterActor extends Actor{
 
       // Fighters are 16px right now, kill both if distance is close enough.
       if(enDist < 16 && this.canAttack()){
-        enemy.applyDamage(1);
+        enemy.applyDamage(2);
         this.timeLastAttack = this.ticksAlive;
       }
 
@@ -58,7 +58,7 @@ class FighterActor extends Actor{
 
     if(target){
       var enDist = this.distanceToActor(target);
-      if(enDist <= 16){
+      if(enDist <= 16 || this.health / this.maxHealth < 0.25){ // Run away if too low health!!!
         // Don't overlap, back away if too close.
         this.heading = Math.atan2(this.y - target.y, this.x - target.x);
       }else{
@@ -72,8 +72,9 @@ class FighterActor extends Actor{
     this.setPosition();
 
     this.ticksAlive++;
-    if(this.ticksAlive > 100){
-      this.kill();
-    }
+
+    // Slow regen!!!!!
+    this.health += 0.1;
+    this.health = Math.min(this.health, this.maxHealth);
   }
 }
