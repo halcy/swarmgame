@@ -20,6 +20,22 @@
   background: #880000;
 }
 
+.hero-actor {
+  width: 32px;
+  height: 32px;
+  background: #880088;
+}
+.hero-actor-sword {
+  position: absolute;
+  transform-origin: left;
+  height: 5px;
+  width: 64px;
+  top: calc(50% + -2.5px);
+  left: 50%;
+  background: black;
+  display: none;
+}
+
 .emitter-actor {
   border-radius: 0%;
 }

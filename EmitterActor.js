@@ -9,6 +9,8 @@ class EmitterActor extends Actor{
     this.x = Math.random() * world.width;
     this.y = Math.random() * world.height;
 
+    this.hero = null;
+
     this.elem = $(`<div class='actor emitter-actor'></div>`);
     this.setPosition();
     world.main.append(this.elem);
@@ -47,6 +49,11 @@ class FighterEmitterActor extends Actor{
   }
 
   tick(world) {
+
+    if(!this.hero || !this.hero.alive){
+      this.hero = new HeroActor(world, this.x, this.y, this.classes, this.enemyClasses);
+      world.actors.push(this.hero);
+    }
 
     if(this.ticksAlive % 60 == 0){
       world.actors.push(new FighterActor(world, this.x, this.y, this.classes, this.enemyClasses));
