@@ -29,6 +29,7 @@ class FighterActor extends Actor{
   }
 
   getTarget () {
+    const VISION_RANGE = 512;
     var minEnemy = null;
     var minEDist = null;
     var minActor = null;
@@ -47,7 +48,7 @@ class FighterActor extends Actor{
       if(!enemy.hasClass(this.enemyClasses)) continue; // Skip anything that's not an enemy
 
       var enDist = this.distanceToActor(enemy);
-      if(minEDist === null || enDist < minEDist) {
+      if((minEDist === null || enDist < minEDist) && enDist < VISION_RANGE) {
         minEDist = enDist;
         minEnemy = enemy;
       }

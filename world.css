@@ -20,6 +20,12 @@
   background: #880000;
 }
 
+.emitter-actor {
+  border-radius: 0%;
+}
+.emitter-actor.good-guy:before { border-radius: 0%; }
+.emitter-actor.bad-guy:before { border-radius: 0%; }
+
 .good-guy:before {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
@@ -60,4 +66,5 @@
   width: 64px;
   height: 64px;
   background: gold !important;
+  border-radius: 100%;
 }
