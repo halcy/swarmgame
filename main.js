@@ -17,10 +17,10 @@ function main() {
     .css("height", `${HEIGHT}px`);
 
 
-  World.actors.push(new FighterEmitterActor(World, ["good-guy"], ["bad-guy"], 100, 100));
-  World.actors.push(new FighterEmitterActor(World, ["good-guy"], ["bad-guy"], 100, 500));
-  World.actors.push(new FighterEmitterActor(World, ["bad-guy"], ["good-guy"], 700, 100));
-  World.actors.push(new FighterEmitterActor(World, ["bad-guy"], ["good-guy"], 700, 500));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 100, 100));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 100, 500));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-random"], ["good-guy"], 700, 100));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-random"], ["good-guy"], 700, 500));
 
   tick();
 }

@@ -33,6 +33,7 @@ class FighterEmitterActor extends Actor{
     this.x = typeof x === "undefined" ? Math.random() * world.width : x;
     this.y = typeof y === "undefined" ? Math.random() * world.height : y;
     this.classes = classes;
+    this.classes.push("emitter-actor");
     this.enemyClasses = enemyClasses;
     this.maxHealth = this.health = 100;
 
@@ -49,7 +50,9 @@ class FighterEmitterActor extends Actor{
   tick(world) {
 
     if(this.ticksAlive % 60 == 0){
-      world.actors.push(new FighterActor(world, this.x, this.y, this.classes, this.enemyClasses));
+      var newActorClasses = this.classes.slice();
+      newActorClasses.splice(newActorClasses.indexOf("emitter-actor"), 1);
+      world.actors.push(new FighterActor(world, this.x, this.y, newActorClasses, this.enemyClasses));
     }
 
     if(this.canPulse()){
