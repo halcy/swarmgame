@@ -51,10 +51,10 @@ class FighterEmitterActor extends Actor{
 
   tick(world) {
 
-    if(!this.hero || !this.hero.alive){
+    /*if(!this.hero || !this.hero.alive){
       this.hero = new HeroActor(world, this.x, this.y, this.classes, this.enemyClasses);
       world.actors.push(this.hero);
-    }
+    }*/
 
     if(this.ticksAlive % 60 == 0){
       var newActorClasses = this.classes.slice();
