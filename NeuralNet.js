@@ -1,10 +1,15 @@
 /**
  * Extremely simple feedforward neural network.
  * Training via stochastic gradient descent / error backpropagation.
+ * Not very fast, but easy to understand.
  * (c) L. Diener 2015
  */
-var weightInitRange = 0.5;
-var biasInitRange = 0.5;
+ 
+ /**
+  * Helpers
+  */
+var weightInitRange = 1.0;
+var biasInitRange = 1.0;
 
 // LFSR RNG because seeds are not a thing in JS (?)
 var m_w = 123456789;
@@ -51,6 +56,9 @@ var centeredRandom = function(x) {
   return (random() - 0.5) * 2.0 * x; 
 };
 
+/**
+ * Activation functions for feedforward layers
+ */
 // Rectified linear units have a simple derivative and thus are \nice/
 var rectifiedLinear = function(x) {
   return Math.max(0, x);
@@ -76,6 +84,9 @@ var identityD = function(x) {
   return 1;
 };
 
+/**
+ * Loss functions
+ */
 // Square error because simplicity
 var squareErrorVec = function(outputVec, referenceVec) {
   error = [];
@@ -96,6 +107,9 @@ var squareErrorVecD = function(outputVec, referenceVec) {
   return errorD;
 };
 
+/**
+ * Simple feedforward neuron with bias
+ */
 // Create a single neuron
 var Neuron = function(numInputs, actFunc, actFuncD) {
   var weightVec = [];
@@ -174,6 +188,9 @@ Neuron.prototype.updateParameters = function(trainingMomentum, trainingRate, min
   this.bias = newBias * trainingMomentum + this.bias * (1.0 - trainingMomentum);
 };
 
+/**
+ * Simple feedforward layer with bias
+ */
 // Create a single feed-forward layer
 var NeuralNetworkLayer = function(numInputs, numNeurons, actFunc, actFuncD) {
   var neurons = [];
@@ -192,7 +209,6 @@ NeuralNetworkLayer.prototype.calculateOutput = function (inputVec) {
   for (var i = 0; i < this.neurons.length; i += 1) {
     outputVec[i] = this.neurons[i].calculateOutput(inputVec);
   }
-  this.currentOutputVec = outputVec;
   
   return outputVec;
 };
@@ -237,6 +253,52 @@ NeuralNetworkLayer.prototype.updateParameters = function (trainingMomentum, trai
   }
 };
 
+/**
+ * Softmax layer. Parameterless.
+ */
+// Create a single Softmax layer
+var SoftmaxLayer = function(numInputs, numNeurons) { };
+
+// Calculate layer outputs
+SoftmaxLayer.prototype.calculateOutput = function (inputVec) {
+  outputVec = [];
+
+  for (var i = 0; i < this.neurons.length; i += 1) {
+    // TODO
+  }
+  
+  return outputVec;
+};
+
+// Calculates every neurons error contributions for the layer above
+// Assumes that for this layer, the error values are already set.
+SoftmaxLayer.prototype.backPropagateError = function () {
+  errorVecD = [];
+
+  for (var i = 0; i < this.neurons[0].weightVec.length; i += 1) {
+    errorVecD[i] = 0;
+  }
+
+  for (var j = 0; j < this.neurons.length; j += 1) {
+    // TODO
+  }
+
+  return errorVecD;
+};
+
+// Parameterless -> no-op
+SoftmaxLayer.prototype.resetTrainingAccus = function () { };
+
+// Parameterless -> no-op
+SoftmaxLayer.prototype.accumulateForTraining = function () { };
+
+// Parameterless -> no-op
+SoftmaxLayer.prototype.updateParameters = function (trainingMomentum, trainingRate, minibatchSize) { };
+
+
+/**
+ * A neural network
+ */
 // A feedforward network, as a collection of layers
 NeuralNetwork = function() {
   this.layers = [];
@@ -329,7 +391,6 @@ NeuralNetwork.prototype.doTrainingEpoch = function(trainingSet, trainingMomentum
   // Shuffle training set
   trainingSetShuffeled = shuffleArray(trainingSet);
 
-  
   // Extract minibatches and train
   summedSquareError = 0;
   currentMinibatchPosition = 0;
@@ -362,6 +423,9 @@ NeuralNetwork.prototype.showNetwork = function() {
   }
 };
 
+/**
+ * Data mangling
+ */
 // Column-wise mean calculation
 function findColumnMeans(inputArrays) {
   columnMeans = [];
@@ -425,14 +489,19 @@ function makeUnitVariance(inputArrays, columnStd) {
   return inputArrays;
 }
 
+/**
+ * Training boilerplate helpers
+ */
+// 2 hidden layer 2x dilated network
 function makeSimpleNetwork(dimensionsIn, dimensionsOut) {
   neuralNetwork = new NeuralNetwork();
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn, dimensionsIn * 3, sigmoid, sigmoidD));
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn * 3, dimensionsOut * 3, sigmoid, sigmoidD));
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsOut * 3, dimensionsOut, identity, identityD)); // TODO stop being lazy, write a softmax + CE
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn, dimensionsIn * 2, sigmoid, sigmoidD));
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn * 2, dimensionsOut * 2, sigmoid, sigmoidD));
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsOut * 2, dimensionsOut, identity, identityD)); // TODO stop being lazy, write a softmax layer + CE loss
   return neuralNetwork;
 }
 
+// Makes data zero mean unit std, trains with different initializations
 function trainSimpleNetwork(trainingSetIn, trainingSetOut, maxEpochs, learnRate, maxAttempts) {
   // Find means for normalization
   inputMeans = findColumnMeans(trainingSetIn);
@@ -457,8 +526,8 @@ function trainSimpleNetwork(trainingSetIn, trainingSetOut, maxEpochs, learnRate,
   }
 
   // Steal some of the training data to be eval data
-  evalSet = trainingSet.slice(trainingSet.length - 5);
-  trainingSet = trainingSet.slice(0, trainingSet.length - 5);
+  evalSet = trainingSet.slice(trainingSet.length - 4); // TODO sanity
+  trainingSet = trainingSet.slice(0, trainingSet.length - 4); // same
 
   var bestLoss = 300000000.0;
   var bestNet = null;
@@ -467,7 +536,7 @@ function trainSimpleNetwork(trainingSetIn, trainingSetOut, maxEpochs, learnRate,
     seed(random());
   
     // Create a simple network
-    neuralNetwork = makeSimpleNetwork();
+    neuralNetwork = makeSimpleNetwork(trainingSetIn[0].length, trainingSetOut[0].length);
 
     // Run training
     console.log("Training begins.");
@@ -483,7 +552,6 @@ function trainSimpleNetwork(trainingSetIn, trainingSetOut, maxEpochs, learnRate,
       evalInput = this.evalSet[j][0];
       evalReference = this.evalSet[j][1];
       evalOutput = neuralNetwork.calculateOutput(evalInput);
-      console.log("Input: [" + evalInput + "], Reference: [" + evalReference + "], Output: [" +  evalOutput + "]");
     }
   
     if(trainSetError < bestLoss) {
