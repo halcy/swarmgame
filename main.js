@@ -1,6 +1,6 @@
 
-const WIDTH = 800;
-const HEIGHT = 600;
+const WIDTH = 1200;
+const HEIGHT = 800;
 
 const World = {
   width: WIDTH,
@@ -16,11 +16,15 @@ function main() {
     .css("width",  `${WIDTH}px`)
     .css("height", `${HEIGHT}px`);
 
-
-  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 100, 100));
-  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 100, 500));
-  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-random"], ["good-guy"], 700, 100));
-  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-random"], ["good-guy"], 700, 500));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 200, 200));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 200, 600));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 200, 333));
+  World.actors.push(new FighterEmitterActor(World, ["good-guy", "attack-nearest"], ["bad-guy"], 200, 466));
+  
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-nearest"], ["good-guy"], 1000, 200));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-nearest"], ["good-guy"], 1000, 600));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-nearest"], ["good-guy"], 1000, 333));
+  World.actors.push(new FighterEmitterActor(World, ["bad-guy", "attack-nearest"], ["good-guy"], 1000, 466));
 
   tick();
 }

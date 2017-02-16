@@ -28,8 +28,10 @@ class FighterActor extends Actor {
     canAttack() {
         return this.ticksAlive - this.timeLastAttack >= this.attackTicksCooldown;
     }
-
+    
     getLocalInformation() {
+        const VISION_RANGE = 512;
+        
         var minActor = null;
         var minADist = null;
         var minEnemy = null;
@@ -52,6 +54,9 @@ class FighterActor extends Actor {
         
         for (var i = 0; i < this.world.actors.length; ++i) {
             var actor = this.world.actors[i];
+            if(this.distanceToActor(actor) > VISION_RANGE) {
+                continue;
+            }
             
             if(actor.hasClass(this.enemyClasses) && !actor.hasClass("emitter-actor")) {
                 enemyMassX += actor.x;
@@ -98,6 +103,43 @@ class FighterActor extends Actor {
             }
         }
 
+        if(minEnemy === null) {
+            minEnemy = new Actor(this.world);
+        }
+        
+        if(minFriend === null) {
+            minFriend = new Actor(this.world);
+        }
+        
+        if(minActor === null) {
+            minActor = new Actor(this.world);
+        }
+        
+        if(minEnemyEmitter === null) {
+            minEnemyEmitter = new Actor(this.world);
+        }
+        
+        if(minFriendEmitter === null) {
+            minFriendEmitter = new Actor(this.world);
+        }
+        
+        if(enemyCount == 0) {
+            enemyMassX = this.world.width / 2;
+            enemyMassY = this.world.height / 2;
+        }
+        else {
+            enemyMassX = enemyMassX / enemyCount;
+            enemyMassY = enemyMassY / enemyCount;
+        }
+        
+        if(friendCount == 0) {
+            friendMassX = this.world.width / 2;
+            friendMassY = this.world.height / 2;
+        }
+        else {
+            friendMassX = friendMassX / friendCount;
+            friendMassY = friendMassY / friendCount;
+        }
         
         return {
             enemyX: minEnemy.x,
@@ -110,12 +152,12 @@ class FighterActor extends Actor {
             minEnemyEmitterY: minEnemyEmitter.y,
             minFriendEmitterX: minFriendEmitter.x,
             minFriendEmitterY: minFriendEmitter.y,
-            enemyMassX: enemyMassX / enemyCount,
-            enemyMassY: enemyMassY / enemyCount,
-            friendMassX: friendMassX / friendCount,
-            friendMassY: friendMassY / friendCount,     
-            friendCount: enemyCount,
-            enemyCount: enemyCount,
+            enemyMassX: enemyMassX,
+            enemyMassY: enemyMassY,
+            friendMassX: friendMassX,
+            friendMassY: friendMassY,
+            enemyCount: enemyCount,            
+            friendCount: friendCount
         };
     }
 
