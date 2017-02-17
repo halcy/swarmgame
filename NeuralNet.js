@@ -8,8 +8,8 @@
  /**
   * Helpers
   */
-var weightInitRange = 0.5;
-var biasInitRange = 0.5;
+var weightInitRange = 0.25;
+var biasInitRange = 0.1;
 
 // LFSR RNG because seeds are not a thing in JS (?)
 var m_w = 123456789;
@@ -125,9 +125,13 @@ var softmaxVec = function(outputVec) {
 var softmaxCEErrorVec = function(outputVec, referenceVec) {
   var error = softmaxVec(outputVec);
   
+  // console.log("Softmax " + error);
+  
   for (var i = 0; i < outputVec.length; i += 1) {
     error[i] = -(Math.log(error[i]) * referenceVec[i]);
   }
+  
+  // console.log("Softmax CE " + error);
   
   return error;
 };
@@ -136,9 +140,13 @@ var softmaxCEErrorVec = function(outputVec, referenceVec) {
 var softmaxCEErrorVecD = function(outputVec, referenceVec) {
   var errorD = softmaxVec(outputVec);
   
+  // console.log("Softmax in errorD " + errorD);
+  
   for (var i = 0; i < outputVec.length; i += 1) {
     errorD[i] = errorD[i] - referenceVec[i];
   }
+  
+  // console.log("Softmax CE D " + errorD);  
   
   return errorD;
 };
@@ -215,13 +223,15 @@ Neuron.prototype.accumulateForTraining = function() {
 Neuron.prototype.updateParameters = function(trainingMomentum, trainingRate, minibatchSize) {
   meanOutput = this.outputAccu / minibatchSize;
   meanErrorD = this.errorDAccu / minibatchSize;
-  // console.log("Weight update with mean " + meanOutput + "and errorD " + meanErrorD);
+  console.log("Weight update with mean " + meanOutput + "and errorD " + meanErrorD + ", mbsize " + minibatchSize);
+  console.log("Before: " + this.weightVec);
   for (var i = 0; i < this.weightVec.length; i += 1) {
     newWeight = this.weightVec[i] - (meanErrorD * meanOutput) * trainingRate;
     this.weightVec[i] = newWeight * trainingMomentum + this.weightVec[i] * (1.0 - trainingMomentum);
   }
   newBias = this.bias - meanErrorD * trainingRate;
   this.bias = newBias * trainingMomentum + this.bias * (1.0 - trainingMomentum);
+  console.log("After: " + this.weightVec);
 };
 
 /**
@@ -327,6 +337,7 @@ NeuralNetwork.prototype.calculateMeanError = function(vectorSet) {
     for (var j = 0; j < errorVec.length; j += 1) {
       totalError += errorVec[j];
     }
+    //console.log("Error calc in " + inputVec + " ; out " + outputVec + " ; ref " + referenceVec + " ; ev " + errorVec);
   }
   
   return totalError / vectorSet.length;
@@ -491,9 +502,9 @@ function makeUnitVariance(inputArrays, columnStd) {
 function makeSimpleNetwork(dimensionsIn, dimensionsOut) {
   dilate = 2;
   neuralNetwork = new NeuralNetwork(softmaxCEErrorVec, softmaxCEErrorVecD);
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn, dimensionsIn * dilate, sigmoid, sigmoidD));
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn * dilate, dimensionsOut * dilate, sigmoid, sigmoidD));
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsOut * dilate, dimensionsOut, identity, identityD));
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn, dimensionsIn * dilate, rectifiedLinear, rectifiedLinearD));
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn * dilate, dimensionsOut * dilate, rectifiedLinear, rectifiedLinearD));
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsOut * dilate, dimensionsOut, rectifiedLinear, rectifiedLinearD));
   return neuralNetwork;
 }
 
@@ -558,3 +569,6 @@ function trainSimpleNetwork(trainingSetIn, trainingSetOut, maxEpochs, learnRate,
   
   return [bestNet, bestLoss];
 }
+
+testDataIn = [[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [0, 1], [1, 0], [1, 1]]
+testDataOut = [[0, 1], [1, 0], [1, 0], [0, 1], [0, 1], [1, 0], [1, 0], [0, 1]]
