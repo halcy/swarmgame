@@ -8,8 +8,8 @@
  /**
   * Helpers
   */
-var weightInitRange = 1.0;
-var biasInitRange = 1.0;
+var weightInitRange = 0.5;
+var biasInitRange = 0.5;
 
 // LFSR RNG because seeds are not a thing in JS (?)
 var m_w = 123456789;
@@ -87,9 +87,9 @@ var identityD = function(x) {
 /**
  * Loss functions
  */
-// Square error because simplicity
+// Square error - for regression
 var squareErrorVec = function(outputVec, referenceVec) {
-  error = [];
+  var error = [];
   
   for (var i = 0; i < outputVec.length; i += 1) {
     error[i] = 0.5 * Math.pow((outputVec[i] - referenceVec[i]), 2.0);
@@ -98,10 +98,46 @@ var squareErrorVec = function(outputVec, referenceVec) {
   return error;
 };
 var squareErrorVecD = function(outputVec, referenceVec) {
-  errorD = [];
+  var errorD = [];
   
   for (var i = 0; i < outputVec.length; i += 1) {
     errorD[i] = outputVec[i] - referenceVec[i];
+  }
+  
+  return errorD;
+};
+
+// Softmax with Crossentropy - for classification
+var softmaxVec = function(outputVec) {
+  var normFact = 0.0;
+  for (var i = 0; i < outputVec.length; i += 1) {
+    normFact += Math.exp(outputVec[i]);
+  }
+  
+  var error = [];
+  for (var i = 0; i < outputVec.length; i += 1) {
+    error[i] = Math.exp(outputVec[i]) / normFact;
+  }
+  
+  return error;
+};
+
+var softmaxCEErrorVec = function(outputVec, referenceVec) {
+  var error = softmaxVec(outputVec);
+  
+  for (var i = 0; i < outputVec.length; i += 1) {
+    error[i] = -(Math.log(error[i]) * referenceVec[i]);
+  }
+  
+  return error;
+};
+
+// Softmax CE loss, conveniently, works out to just softmax minus reference
+var softmaxCEErrorVecD = function(outputVec, referenceVec) {
+  var errorD = softmaxVec(outputVec);
+  
+  for (var i = 0; i < outputVec.length; i += 1) {
+    errorD[i] = errorD[i] - referenceVec[i];
   }
   
   return errorD;
@@ -254,53 +290,12 @@ NeuralNetworkLayer.prototype.updateParameters = function (trainingMomentum, trai
 };
 
 /**
- * Softmax layer. Parameterless.
- */
-// Create a single Softmax layer
-var SoftmaxLayer = function(numInputs, numNeurons) { };
-
-// Calculate layer outputs
-SoftmaxLayer.prototype.calculateOutput = function (inputVec) {
-  outputVec = [];
-
-  for (var i = 0; i < this.neurons.length; i += 1) {
-    // TODO
-  }
-  
-  return outputVec;
-};
-
-// Calculates every neurons error contributions for the layer above
-// Assumes that for this layer, the error values are already set.
-SoftmaxLayer.prototype.backPropagateError = function () {
-  errorVecD = [];
-
-  for (var i = 0; i < this.neurons[0].weightVec.length; i += 1) {
-    errorVecD[i] = 0;
-  }
-
-  for (var j = 0; j < this.neurons.length; j += 1) {
-    // TODO
-  }
-
-  return errorVecD;
-};
-
-// Parameterless -> no-op
-SoftmaxLayer.prototype.resetTrainingAccus = function () { };
-
-// Parameterless -> no-op
-SoftmaxLayer.prototype.accumulateForTraining = function () { };
-
-// Parameterless -> no-op
-SoftmaxLayer.prototype.updateParameters = function (trainingMomentum, trainingRate, minibatchSize) { };
-
-
-/**
  * A neural network
  */
 // A feedforward network, as a collection of layers
-NeuralNetwork = function() {
+NeuralNetwork = function(lossFunc, lossFuncD) {
+  this.lossFunc = lossFunc;
+  this.lossFuncD = lossFuncD;
   this.layers = [];
 };
 
@@ -328,7 +323,7 @@ NeuralNetwork.prototype.calculateMeanError = function(vectorSet) {
     inputVec = vectorSet[i][0];
     referenceVec = vectorSet[i][1];
     outputVec = this.calculateOutput(inputVec);
-    errorVec = squareErrorVec(outputVec, referenceVec);
+    errorVec = this.lossFunc(outputVec, referenceVec);
     for (var j = 0; j < errorVec.length; j += 1) {
       totalError += errorVec[j];
     }
@@ -349,7 +344,7 @@ NeuralNetwork.prototype.doTrainingMinibatch = function(trainingSet, trainingMome
     inputVec = trainingSet[i][0];
     referenceVec = trainingSet[i][1];   
     outputVec = this.calculateOutput(inputVec);
-    errorVecD = squareErrorVecD(outputVec, referenceVec);
+    errorVecD = this.lossFuncD(outputVec, referenceVec);
     
     // Set output error
     for (j = 0; j < errorVecD.length; j += 1) {
@@ -494,10 +489,11 @@ function makeUnitVariance(inputArrays, columnStd) {
  */
 // 2 hidden layer 2x dilated network
 function makeSimpleNetwork(dimensionsIn, dimensionsOut) {
-  neuralNetwork = new NeuralNetwork();
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn, dimensionsIn * 2, sigmoid, sigmoidD));
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn * 2, dimensionsOut * 2, sigmoid, sigmoidD));
-  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsOut * 2, dimensionsOut, identity, identityD)); // TODO stop being lazy, write a softmax layer + CE loss
+  dilate = 2;
+  neuralNetwork = new NeuralNetwork(softmaxCEErrorVec, softmaxCEErrorVecD);
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn, dimensionsIn * dilate, sigmoid, sigmoidD));
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsIn * dilate, dimensionsOut * dilate, sigmoid, sigmoidD));
+  neuralNetwork.addLayer(new NeuralNetworkLayer(dimensionsOut * dilate, dimensionsOut, identity, identityD));
   return neuralNetwork;
 }
 
@@ -509,15 +505,15 @@ function trainSimpleNetwork(trainingSetIn, trainingSetOut, maxEpochs, learnRate,
 
   // Normalize means
   trainingSetIn = makeZeroMean(trainingSetIn, inputMeans);
-  trainingSetOut = makeZeroMean(trainingSetOut, outputMeans);
+  //trainingSetOut = makeZeroMean(trainingSetOut, outputMeans);
 
   // Find standard deviation for normalization
   inputStd = findColumnStdDevZeroMean(trainingSetIn);
-  outputStd = findColumnStdDevZeroMean(trainingSetOut);
+  //outputStd = findColumnStdDevZeroMean(trainingSetOut);
 
   // Normalize variance
   trainingSetIn = makeUnitVariance(trainingSetIn, inputStd);
-  trainingSetOut = makeUnitVariance(trainingSetOut, outputStd);
+  //trainingSetOut = makeUnitVariance(trainingSetOut, outputStd);
 
   // Put together
   trainingSet = [];
@@ -528,7 +524,7 @@ function trainSimpleNetwork(trainingSetIn, trainingSetOut, maxEpochs, learnRate,
   // Steal some of the training data to be eval data
   evalSet = trainingSet.slice(trainingSet.length - 4); // TODO sanity
   trainingSet = trainingSet.slice(0, trainingSet.length - 4); // same
-
+  
   var bestLoss = 300000000.0;
   var bestNet = null;
   for(var attempt = 0; attempt < maxAttempts; attempt += 1) {
